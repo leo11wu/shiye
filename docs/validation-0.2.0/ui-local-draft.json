@@ -1,0 +1,13 @@
+{
+  "checks" : {
+    "has_page_text" : true,
+    "local_draft_text_view" : true,
+    "no_unexpected_alert" : true,
+    "original_image_loaded" : true,
+    "window_visible" : true
+  },
+  "method" : "native-view-render-and-model-integration; no mouse automation",
+  "passed" : true,
+  "peak_resident_bytes" : 206848000,
+  "status" : "已恢复 1 页 · 原始转写与修改记录均保留"
+}

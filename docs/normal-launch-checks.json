@@ -1,0 +1,24 @@
+{
+  "version": "0.1.1",
+  "bundle_id": "local.leowu.Shiye",
+  "method": "actual app launch and relaunch; no --qa or --ui-check; standard settings",
+  "checks": [
+    {
+      "attempt": 1,
+      "main_window_ready": true,
+      "remained_running": true,
+      "observed_seconds": 8.12,
+      "crash_exit_code": null,
+      "own_bundle_suite_warning": false
+    },
+    {
+      "attempt": 2,
+      "main_window_ready": true,
+      "remained_running": true,
+      "observed_seconds": 8.08,
+      "crash_exit_code": null,
+      "own_bundle_suite_warning": false
+    }
+  ],
+  "passed": true
+}

@@ -1,0 +1,33 @@
+{
+  "version": "Charis 7.000",
+  "license": "SIL OFL 1.1",
+  "upstream": "https://software.sil.org/downloads/r/charis/Charis-7.000.zip",
+  "upstream_zip_sha256": "e3237b1303c5d31af8f59b1d1914886c5e873b77c71390e4742fb3bc1c187666",
+  "bundled_files": [
+    {
+      "file": "Charis-Bold.ttf",
+      "bytes": 875024,
+      "sha256": "64e353674f294993fe979075e351afa5da367a8dd16a860e04eba103cb1cdb08"
+    },
+    {
+      "file": "Charis-BoldItalic.ttf",
+      "bytes": 895556,
+      "sha256": "d832bcf31000994b07ab8f73b69127d12e764d8c3c67b7c90e58f1d740291d00"
+    },
+    {
+      "file": "Charis-Italic.ttf",
+      "bytes": 892576,
+      "sha256": "f6e3e822b125aca03337f15cdd094663efaa784b67b766b9370d9f1bf5c2cb2e"
+    },
+    {
+      "file": "Charis-Regular.ttf",
+      "bytes": 878076,
+      "sha256": "c03738834bd3a43c3e4a59b11878bd6ede3ee505998242ae649ed1f9cd2edcf6"
+    },
+    {
+      "file": "OFL.txt",
+      "bytes": 4500,
+      "sha256": "07b1a63504f43e26b07a8017cd5803da86badb1bc1432470869ec48ad76958ee"
+    }
+  ]
+}

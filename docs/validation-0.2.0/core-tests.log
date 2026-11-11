@@ -1,0 +1,64 @@
+/Users/leowu/Desktop/Ocr扫描归档/Tests/PageArchiveCoreTests/Scenarios.swift:37:41: warning: heterogeneous collection literal could only be inferred to '[String : Any]'; add explicit type annotation if this is intentional
+    var object:[String:Any]=["choices":[["finish_reason":finish,"message":["content":content]]],"usage":["prompt_tokens":12,"completion_tokens":34]]
+                                        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                                                                               as [String : Any]
+/Users/leowu/Desktop/Ocr扫描归档/Tests/PageArchiveCoreTests/Scenarios.swift:41:156: warning: empty collection literal requires an explicit type
+func textBlock(_ text:String="Original ɑ̃ 語",box:[Double]=[0.1,0.1,0.9,0.3])->[String:Any]{["kind":"paragraph","order":1,"bbox":box,"text":text,"runs":[],"cells":[]]}
+/Users/leowu/Desktop/Ocr扫描归档/Tests/PageArchiveCoreTests/Scenarios.swift:41:167: warning: empty collection literal requires an explicit type
+func textBlock(_ text:String="Original ɑ̃ 語",box:[Double]=[0.1,0.1,0.9,0.3])->[String:Any]{["kind":"paragraph","order":1,"bbox":box,"text":text,"runs":[],"cells":[]]}
+/Users/leowu/Desktop/Ocr扫描归档/Tests/PageArchiveCoreTests/Scenarios.swift:63:88: warning: heterogeneous collection literal could only be inferred to '[String : Any]'; add explicit type annotation if this is intentional
+    check("样式片段必须与原文完全相同"){var b=textBlock("H2O");b["runs"]=[["text":"H"],["text":"2","script":-1],["text":"O"]];let r=try OCRParser.parse(envelope([b]),pageID:"p1");try require(r.blocks[0].runs[1].style.script == -1);b["runs"]=[["text":"water"]];try mustThrow{_ = try OCRParser.parse(envelope([b]),pageID:"p1")}}
+/Users/leowu/Desktop/Ocr扫描归档/Tests/PageArchiveCoreTests/Scenarios.swift:65:127: warning: heterogeneous collection literal could only be inferred to '[String : Any]'; add explicit type annotation if this is intentional
+    check("表格单元格不能超出表格"){let b:[String:Any]=["kind":"table","order":1,"bbox":[0.1,0.1,0.9,0.9],"cells":[["row":0,"column":0,"text":"A","bbox":[0.0,0.0,0.2,0.2]]]];try mustThrow{_ = try OCRParser.parse(envelope([b]),pageID:"p1")}}
+PASS 页范围去重与排序
+PASS 空范围选择全部
+PASS 中文逗号页范围
+PASS 拒绝倒序与越界范围
+PASS 拒绝非有限或越界坐标
+PASS 坐标由顶端归一化转换为PDF原点
+PASS API基地址保留版本与去除重复路由
+PASS 拒绝明文远端与带凭据URL
+PASS 允许本机HTTP接口
+PASS 逐页保留请求与返回模型差别
+PASS 返回模型未知时保持空值
+PASS 截断输出不能成功
+PASS 拒绝坏坐标与未知区域类型
+PASS 拒绝空成功与空文字块
+PASS 空白判定保留人工确认问题
+PASS 疑难附标保留标记
+PASS 样式片段必须与原文完全相同
+PASS 表格合并关系不能重叠
+PASS 表格单元格不能超出表格
+PASS 拒绝重复阅读顺序
+PASS 缓存随图像和模型变化
+PASS 项目保存恢复与原始转写不被覆盖
+PASS 拒绝项目目录越界和符号链接
+PASS 排版样张Unicode文字完整复制
+PASS 正文溢出不能靠无限缩小掩盖
+PASS 缺字方框必须被检测
+PASS 非BMP与组合字符保留Unicode序列
+PASS 区域重叠被检测
+PASS 未识别页面明确为校对稿
+PASS 确认空白页保留页数
+PASS 空文字区域不能完成
+PASS 正文不能以图片冒充文字化
+PASS PDF导入文字层只是待核对候选
+PASS 旋转页保持正向尺寸
+PASS 多页TIFF逐帧导入
+PASS JPEG的EXIF旋转在导入时归一化
+PASS HTTP429遵守RetryAfter并复用请求
+PASS HTTP401直接失败且不回显密钥
+PASS HTTP402余额不足不重试
+PASS 502重试有明确上限
+PASS 超时与断网有限重试
+PASS 取消不会继续重试
+PASS RetryAfter日期与超长等待
+PASS 图像请求格式与密钥隔离
+PASS 局部识别坐标返回到原页
+PASS 系统临时目录别名下可创建预览文件
+PASS 项目JSON不包含API密钥
+PASS 扫描导出保留失败页和确认空白页且优先校对文字
+PASS 本机初稿拒绝覆盖已有转写
+PASS 扫描导出取消后不继续处理后续页面
+PASS 旧项目缺少图像版本标记仍可恢复
+51/51 checks passed

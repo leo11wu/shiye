@@ -1,0 +1,15 @@
+{
+  "scope": "One manually transcribed paragraph from original book page 6; not a whole-book accuracy estimate",
+  "gold_nonspace_characters": 440,
+  "normalization": "Unicode NFC and remove whitespace only",
+  "old": {
+    "edit_distance": 23,
+    "cer": 0.05227272727272727,
+    "observed_characters": 435
+  },
+  "repaired": {
+    "edit_distance": 0,
+    "cer": 0.0,
+    "observed_characters": 440
+  }
+}

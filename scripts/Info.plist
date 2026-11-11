@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+<key>CFBundleExecutable</key><string>Shiye</string>
+<key>CFBundleIdentifier</key><string>local.leowu.Shiye</string>
+<key>CFBundleName</key><string>拾页</string>
+<key>CFBundleDisplayName</key><string>拾页</string>
+<key>CFBundleIconFile</key><string>AppIcon.icns</string>
+<key>CFBundleShortVersionString</key><string>0.2.0</string>
+<key>CFBundleVersion</key><string>3</string>
+<key>CFBundlePackageType</key><string>APPL</string>
+<key>NSHighResolutionCapable</key><true/>
+<key>LSMinimumSystemVersion</key><string>14.0</string>
+<key>NSPrincipalClass</key><string>NSApplication</string>
+<key>NSHumanReadableCopyright</key><string>拾页 2026. Charis is licensed under SIL OFL 1.1.</string>
+<key>CFBundleDocumentTypes</key><array><dict>
+<key>CFBundleTypeName</key><string>拾页项目</string><key>CFBundleTypeRole</key><string>Editor</string>
+<key>CFBundleTypeExtensions</key><array><string>shiyebook</string></array><key>LSTypeIsPackage</key><true/>
+</dict></array>
+</dict></plist>
