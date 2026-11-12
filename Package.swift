@@ -8,7 +8,7 @@ let package = Package(
                .executable(name: "shiye-check", targets: ["PageArchiveCLI"]),
                .executable(name: "shiye-tests", targets: ["PageArchiveChecks"])],
     targets: [
-        .target(name: "PageArchiveCore", resources: [.copy("Resources/Fonts")]),
+        .target(name: "PageArchiveCore", resources: [.copy("Resources/Fonts"), .copy("Resources/OCR")]),
         .executableTarget(name: "PageArchiveApp", dependencies: ["PageArchiveCore"]),
         .executableTarget(name: "PageArchiveCLI", dependencies: ["PageArchiveCore"]),
         .executableTarget(name: "PageArchiveChecks", dependencies: ["PageArchiveCore"], path:"Tests/PageArchiveCoreTests")

@@ -1,0 +1,56 @@
+{
+  "batch_details" : {
+    "cancel_started_source_pages" : [
+      2,
+      3,
+      4
+    ],
+    "cancel_status" : "已停止 · 已保存 1\/5 页；再次开始可继续处理。",
+    "complete_started_source_pages" : [
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "complete_status" : "本机识别完成 · 成功 4 页，失败 1 页 · 0 秒；识别文字仍需核对。",
+    "resume_started_source_pages" : [
+      3,
+      4,
+      5,
+      6
+    ],
+    "resume_status" : "本机识别完成 · 成功 4 页，失败 0 页 · 0 秒；识别文字仍需核对。"
+  },
+  "checks" : {
+    "batch_can_browse_while_working" : true,
+    "batch_cancel_leaves_remaining_pending" : true,
+    "batch_cancel_not_page_failure" : true,
+    "batch_cancel_preserves_completed" : true,
+    "batch_cancel_selection_preserved" : true,
+    "batch_cancel_stops_admission" : true,
+    "batch_completion_counts" : true,
+    "batch_each_completion_saved" : true,
+    "batch_failure_isolated" : true,
+    "batch_parallel_workers" : true,
+    "batch_reopen_preserves_saved_pages" : true,
+    "batch_resume_complete" : true,
+    "batch_resume_keeps_previous_results" : true,
+    "batch_resume_only_pending_pages" : true,
+    "batch_resume_saved_matches_memory" : true,
+    "batch_resume_selection_preserved" : true,
+    "batch_saved_matches_memory" : true,
+    "batch_selection_not_stolen" : true,
+    "batch_skips_reviewed_page" : true,
+    "batch_started" : true,
+    "batch_stopping_state" : true,
+    "batch_two_active_pages" : true,
+    "no_unexpected_alert" : true,
+    "window_visible" : true
+  },
+  "method" : "native-view-render-and-model-integration; no mouse automation",
+  "passed" : true,
+  "peak_resident_bytes" : 246349824,
+  "scope" : "Six-page known fixtures and a controlled local recognizer substitute; tests batch UI state, cancellation, resume and persistence, not OCR accuracy or mouse automation.",
+  "status" : "本机识别完成 · 成功 4 页，失败 0 页 · 0 秒；识别文字仍需核对。"
+}

@@ -1,0 +1,17 @@
+{
+  "checks" : {
+    "edit_persisted" : true,
+    "export_reopen_copy" : true,
+    "fixture_layout_clean" : true,
+    "no_unexpected_alert" : true,
+    "project_reopened" : true,
+    "raw_text_preserved" : true,
+    "review_status" : true,
+    "settings_sheet" : true,
+    "window_visible" : true
+  },
+  "method" : "native-view-render-and-model-integration; no mouse automation",
+  "passed" : true,
+  "peak_resident_bytes" : 249430016,
+  "status" : "已恢复 1 页 · 原始转写与修改记录均保留"
+}

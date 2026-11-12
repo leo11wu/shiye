@@ -147,7 +147,7 @@ public enum PDFRenderer {
             }
         }
         // Compare area coverage of independent local detections, not model confidence.
-        for hint in page.hints where hint.box.area>0 {
+        for hint in page.hints where page.ocrStructure==nil && hint.box.area>0 {
             let covered=blocks.reduce(0.0) { $0+$1.box.intersection(hint.box) }
             if covered<hint.box.area*0.65, page.status != .blank {
                 issues.append(ReviewIssue("uncovered","本机检测到未覆盖的文字区域（约 x=\(Int(hint.box.x*100))%，y=\(Int(hint.box.y*100))%），请核对漏块。"));break
@@ -155,14 +155,29 @@ public enum PDFRenderer {
         }
         return PageDiagnostics(pageID:page.id,issues:issues,fittedFontSizes:sizes)
     }
-    public static func render(document:BookDocument,store:ProjectStore?,to url:URL,pages:[Int]? = nil,forceDraft:Bool = false) throws -> RenderReport {
+    public static func render(document:BookDocument,store:ProjectStore?,to url:URL,pages:[Int]? = nil,forceDraft:Bool = false,
+                              cancelled:() -> Bool = { false },progress:(Int,Int) -> Void = { _,_ in }) throws -> RenderReport {
         let selected=pages ?? Array(document.pages.indices)
         guard !selected.isEmpty,selected.allSatisfy({document.pages.indices.contains($0)}) else { throw ArchiveError.message("没有可导出的页面。") }
-        let preliminary=selected.map { diagnostics(page:document.pages[$0],chineseFont:document.chineseFont) }
+        func checkCancellation() throws { if cancelled() { throw CancellationError() } }
+        try checkCancellation()
+        progress(0,selected.count)
+        var preliminary:[PageDiagnostics]=[]
+        for index in selected {
+            try checkCancellation()
+            preliminary.append(diagnostics(page:document.pages[index],chineseFont:document.chineseFont))
+        }
+        try checkCancellation()
         let draft=forceDraft || preliminary.contains { !$0.issues.isEmpty } || selected.contains { ![PageStatus.reviewed,.blank].contains(document.pages[$0].status) }
         guard let consumer=CGDataConsumer(url:url as CFURL),let ctx=CGContext(consumer:consumer,mediaBox:nil,[kCGPDFContextTitle:document.title+(draft ? "（校对稿）" : ""),kCGPDFContextCreator:"拾页",kCGPDFContextSubject:"原文重建；逐页来源与修改记录保存在拾页项目中"] as CFDictionary) else { throw ArchiveError.message("无法创建 PDF，请检查保存位置。") }
+        var closed=false,completed=false
+        defer {
+            if !closed { ctx.closePDF() }
+            if !completed { try? FileManager.default.removeItem(at:url) }
+        }
         var reports:[PageDiagnostics]=[]
-        for index in selected {
+        for (position,index) in selected.enumerated() {
+            try checkCancellation()
             autoreleasepool {
                 let page=document.pages[index]
                 var media=CGRect(origin:.zero,size:page.size)
@@ -177,12 +192,16 @@ public enum PDFRenderer {
                 }
                 ctx.endPDFPage()
             }
+            progress(position+1,selected.count)
         }
+        try checkCancellation()
         ctx.closePDF()
+        closed=true
         var report=RenderReport(draft:draft,pages:reports)
         if !draft && reports.contains(where:{!$0.issues.isEmpty}) {try? FileManager.default.removeItem(at:url);throw ArchiveError.message("导出过程中发现资源或排版问题，请保存校对稿并处理。")}
         guard let pdf=PDFDocument(url:url),pdf.pageCount==selected.count else { throw ArchiveError.message("导出 PDF 无法重新打开，或页数不匹配。") }
         for (output,index) in selected.enumerated() {
+            try checkCancellation()
             let page=document.pages[index],expected=normalizedText(page.orderedBlocks.map(\.plainText).joined(separator:"\n"))
             let actual=normalizedText(pdf.page(at:output)?.string ?? "")
             if !expected.isEmpty && !actual.contains(expected) { report.textMismatches.append(page.id) }
@@ -193,15 +212,27 @@ public enum PDFRenderer {
             try? FileManager.default.removeItem(at:url)
             throw ArchiveError.message("导出后文字提取与原文不一致（\(report.textMismatches.count) 页）。请导出校对稿检查复制顺序。")
         }
+        try checkCancellation()
+        completed=true
         return report
     }
     public static func normalizedText(_ text:String) -> String { String(text.precomposedStringWithCanonicalMapping.unicodeScalars.filter { !CharacterSet.whitespacesAndNewlines.contains($0) }) }
-    public static func exportText(document:BookDocument,pages:[Int],to url:URL) throws {
-        let text=pages.map { index in
+    public static func exportText(document:BookDocument,pages:[Int],to url:URL,
+                                  cancelled:() -> Bool = { false },progress:(Int,Int) -> Void = { _,_ in }) throws {
+        guard pages.allSatisfy({document.pages.indices.contains($0)}) else { throw ArchiveError.message("导出页范围超出项目页数。") }
+        func checkCancellation() throws { if cancelled() { throw CancellationError() } }
+        try checkCancellation()
+        progress(0,pages.count)
+        var texts:[String]=[]
+        for (position,index) in pages.enumerated() {
+            try checkCancellation()
             let p=document.pages[index]
             let separator=p.issues.contains(where:{$0.code=="local-draft"}) ? "\n" : "\n\n"
-            return "[项目页 \(index+1) / 来源页 \(p.sourcePage) / \(p.status.label)]\n"+p.orderedBlocks.map { b in b.retainImage || b.kind == .figure ? "[原图对象：\(b.id)]" : b.plainText }.joined(separator:separator)
-        }.joined(separator:"\n\n\u{000C}\n\n")
+            texts.append("[项目页 \(index+1) / 来源页 \(p.sourcePage) / \(p.status.label)]\n"+p.orderedBlocks.map { b in b.retainImage || b.kind == .figure ? "[原图对象：\(b.id)]" : b.plainText }.joined(separator:separator))
+            progress(position+1,pages.count)
+        }
+        let text=texts.joined(separator:"\n\n\u{000C}\n\n")
+        try checkCancellation()
         try text.write(to:url,atomically:true,encoding:.utf8)
     }
 }

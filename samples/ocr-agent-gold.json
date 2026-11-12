@@ -1,0 +1,302 @@
+{
+  "layout": "two_columns_ltr",
+  "printed_page_label": "27",
+  "blank": false,
+  "starts_mid_paragraph": false,
+  "ends_mid_paragraph": true,
+  "blocks": [
+    {
+      "id": "header",
+      "kind": "header",
+      "column": "full",
+      "bbox": [
+        0.413125,
+        0.045714,
+        0.58625,
+        0.06619
+      ],
+      "text": "聲音採錄札記　卷二",
+      "uncertainty": null,
+      "note_id": null,
+      "note_refs": [],
+      "cells": []
+    },
+    {
+      "id": "title",
+      "kind": "heading",
+      "column": "full",
+      "bbox": [
+        0.0775,
+        0.106667,
+        0.4,
+        0.136667
+      ],
+      "text": "三、保留轉寫中的異文",
+      "uncertainty": null,
+      "note_id": null,
+      "note_refs": [],
+      "cells": []
+    },
+    {
+      "id": "left-1",
+      "kind": "paragraph",
+      "column": "left",
+      "bbox": [
+        0.0775,
+        0.172857,
+        0.4125,
+        0.261429
+      ],
+      "text": "校對時須保留原頁的標音。\n相同讀音可以有不同的寫法。\n原稿列出 [tɕʰ] 和 [ɕ]。¹",
+      "uncertainty": null,
+      "note_id": null,
+      "note_refs": [
+        "1"
+      ],
+      "cells": []
+    },
+    {
+      "id": "left-2",
+      "kind": "paragraph",
+      "column": "left",
+      "bbox": [
+        0.0775,
+        0.305714,
+        0.3875,
+        0.392857
+      ],
+      "text": "抄錄者把例字分作兩組。\n每組先寫地點，再記聲母。\n凡原頁缺字，保留空缺。",
+      "uncertainty": null,
+      "note_id": null,
+      "note_refs": [],
+      "cells": []
+    },
+    {
+      "id": "right-1",
+      "kind": "paragraph",
+      "column": "right",
+      "bbox": [
+        0.520625,
+        0.172857,
+        0.830625,
+        0.259048
+      ],
+      "text": "右欄記的是同一次採錄。\n第二天的記錄另起一段。\n讀音不同的地方另作標記。",
+      "uncertainty": null,
+      "note_id": null,
+      "note_refs": [],
+      "cells": []
+    },
+    {
+      "id": "right-2",
+      "kind": "paragraph",
+      "column": "right",
+      "bbox": [
+        0.520625,
+        0.305714,
+        0.830625,
+        0.361905
+      ],
+      "text": "見下表。空白表示未記錄。\n空格與零值應分別保留。",
+      "uncertainty": null,
+      "note_id": null,
+      "note_refs": [],
+      "cells": []
+    },
+    {
+      "id": "table",
+      "kind": "table",
+      "column": "full",
+      "bbox": [
+        0.08,
+        0.474286,
+        0.92,
+        0.634286
+      ],
+      "text": "",
+      "uncertainty": null,
+      "note_id": null,
+      "note_refs": [],
+      "cells": [
+        {
+          "row": 0,
+          "column": 0,
+          "row_span": 1,
+          "column_span": 3,
+          "bbox": [
+            0.0825,
+            0.47619,
+            0.9175,
+            0.515238
+          ],
+          "text": "採錄簡表"
+        },
+        {
+          "row": 1,
+          "column": 0,
+          "row_span": 1,
+          "column_span": 1,
+          "bbox": [
+            0.0825,
+            0.515238,
+            0.35875,
+            0.554286
+          ],
+          "text": "地點"
+        },
+        {
+          "row": 1,
+          "column": 1,
+          "row_span": 1,
+          "column_span": 1,
+          "bbox": [
+            0.35875,
+            0.515238,
+            0.5875,
+            0.554286
+          ],
+          "text": "條數"
+        },
+        {
+          "row": 1,
+          "column": 2,
+          "row_span": 1,
+          "column_span": 1,
+          "bbox": [
+            0.5875,
+            0.515238,
+            0.9175,
+            0.554286
+          ],
+          "text": "備註"
+        },
+        {
+          "row": 2,
+          "column": 0,
+          "row_span": 1,
+          "column_span": 1,
+          "bbox": [
+            0.0825,
+            0.554286,
+            0.35875,
+            0.593333
+          ],
+          "text": "河岸"
+        },
+        {
+          "row": 2,
+          "column": 1,
+          "row_span": 1,
+          "column_span": 1,
+          "bbox": [
+            0.35875,
+            0.554286,
+            0.5875,
+            0.593333
+          ],
+          "text": "7"
+        },
+        {
+          "row": 2,
+          "column": 2,
+          "row_span": 1,
+          "column_span": 1,
+          "bbox": [
+            0.5875,
+            0.554286,
+            0.9175,
+            0.593333
+          ],
+          "text": "重錄一次"
+        },
+        {
+          "row": 3,
+          "column": 0,
+          "row_span": 1,
+          "column_span": 1,
+          "bbox": [
+            0.0825,
+            0.593333,
+            0.35875,
+            0.632381
+          ],
+          "text": "舊街"
+        },
+        {
+          "row": 3,
+          "column": 1,
+          "row_span": 1,
+          "column_span": 1,
+          "bbox": [
+            0.35875,
+            0.593333,
+            0.5875,
+            0.632381
+          ],
+          "text": "0"
+        },
+        {
+          "row": 3,
+          "column": 2,
+          "row_span": 1,
+          "column_span": 1,
+          "bbox": [
+            0.5875,
+            0.593333,
+            0.9175,
+            0.632381
+          ],
+          "text": ""
+        }
+      ]
+    },
+    {
+      "id": "tail",
+      "kind": "paragraph",
+      "column": "full",
+      "bbox": [
+        0.0775,
+        0.708095,
+        0.5625,
+        0.734762
+      ],
+      "text": "這批記錄的第二部分留待下頁說明，尤其是",
+      "uncertainty": null,
+      "note_id": null,
+      "note_refs": [],
+      "cells": []
+    },
+    {
+      "id": "note-1",
+      "kind": "footnote",
+      "column": "full",
+      "bbox": [
+        0.0775,
+        0.85381,
+        0.379375,
+        0.875238
+      ],
+      "text": "1. 標音依原稿保留，採錄地點從略。",
+      "uncertainty": null,
+      "note_id": "1",
+      "note_refs": [],
+      "cells": []
+    },
+    {
+      "id": "footer",
+      "kind": "footer",
+      "column": "full",
+      "bbox": [
+        0.483125,
+        0.945714,
+        0.516875,
+        0.965238
+      ],
+      "text": "27",
+      "uncertainty": null,
+      "note_id": null,
+      "note_refs": [],
+      "cells": []
+    }
+  ]
+}

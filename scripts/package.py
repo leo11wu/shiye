@@ -1,18 +1,21 @@
 #!/usr/bin/env python3
 """Package only explicit public build inputs; never include projects or source scans."""
+import argparse
 import hashlib
 import json
 import plistlib
 import shutil
 import stat
-import tempfile
 import zipfile
 from pathlib import Path
 
 root = Path(__file__).resolve().parents[1]
-release = root / "release"
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument("--release-dir", type=Path, default=root / "release")
+release = parser.parse_args().release_dir.resolve()
 app = release / "拾页.app"
 version = plistlib.loads((root / "scripts/Info.plist").read_bytes())["CFBundleShortVersionString"]
+assert plistlib.loads((app / "Contents/Info.plist").read_bytes())["CFBundleShortVersionString"] == version
 
 
 def archive(paths, destination, base):

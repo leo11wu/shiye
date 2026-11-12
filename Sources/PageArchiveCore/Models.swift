@@ -25,12 +25,38 @@ public struct Box: Codable, Equatable {
 
 public enum BlockKind: String, Codable, CaseIterable {
     case paragraph, heading, list, footnote, header, footer, table, figure
+    var isBody: Bool { self != .header && self != .footer && self != .footnote }
     public var label: String {
         switch self {
         case .paragraph: return "正文"; case .heading: return "标题"; case .list: return "条目"
         case .footnote: return "脚注"; case .header: return "页眉"; case .footer: return "页码 / 页脚"
         case .table: return "表格"; case .figure: return "图像"
         }
+    }
+}
+public enum OCRColumn: String, Codable { case left, right, full }
+public enum OCRPageLayout: String, Codable {
+    case single = "single_column", leftToRight = "two_columns_ltr", rightToLeft = "two_columns_rtl", other
+}
+public struct OCRPageStructure: Codable {
+    public var layout: OCRPageLayout
+    public var startsMidParagraph: Bool
+    public var endsMidParagraph: Bool
+    public init(layout: OCRPageLayout, startsMidParagraph: Bool, endsMidParagraph: Bool) {
+        self.layout=layout;self.startsMidParagraph=startsMidParagraph;self.endsMidParagraph=endsMidParagraph
+    }
+}
+public enum ContinuationSeparator: String, Codable {
+    case none, space
+    public var text: String { self == .space ? " " : "" }
+}
+public struct TextContinuation: Codable, Equatable {
+    public var nextPageID: String
+    public var tailBlockID: String
+    public var headBlockID: String
+    public var separator: ContinuationSeparator
+    public init(nextPageID: String, tailBlockID: String, headBlockID: String, separator: ContinuationSeparator) {
+        self.nextPageID=nextPageID;self.tailBlockID=tailBlockID;self.headBlockID=headBlockID;self.separator=separator
     }
 }
 public struct TextStyle: Codable, Equatable {
@@ -69,6 +95,9 @@ public struct Block: Codable, Identifiable {
     public var reviewed: Bool
     public var retainImage: Bool
     public var drawGrid: Bool
+    public var ocrColumn: OCRColumn?
+    public var noteID: String?
+    public var noteReferences: [String]?
     public var text: String { reviewedText ?? rawText }
     public init(id: String = UUID().uuidString, kind: BlockKind = .paragraph, order: Int = 1, box: Box = Box(0.08,0.08,0.84,0.20), text: String = "", runs: [TextRun] = [], cells: [TableCell] = [], fontSize: Double = 0) {
         self.id=id;self.kind=kind;self.order=order;self.box=box;self.rawText=text;self.runs=runs;self.cells=cells;self.fontSize=fontSize
@@ -79,13 +108,21 @@ public struct Block: Codable, Identifiable {
         return retainImage || kind == .figure ? "" : text
     }
 }
-public struct TextHint: Codable { public var box: Box; public var text: String }
+public struct TextHint: Codable {
+    public var box: Box
+    public var text: String
+    public var confidence: Double?
+    public init(box: Box, text: String, confidence: Double? = nil) {
+        self.box=box;self.text=text;self.confidence=confidence
+    }
+}
 public struct ReviewIssue: Codable, Identifiable {
     public var id: String
     public var code: String, message: String, blockID: String?
     public var resolved: Bool
-    public init(_ code: String, _ message: String, blockID: String? = nil, resolved: Bool = false) {
-        self.id=UUID().uuidString;self.code=code;self.message=message;self.blockID=blockID;self.resolved=resolved
+    public var box: Box?
+    public init(_ code: String, _ message: String, blockID: String? = nil, resolved: Bool = false, box: Box? = nil) {
+        self.id=UUID().uuidString;self.code=code;self.message=message;self.blockID=blockID;self.resolved=resolved;self.box=box
     }
 }
 public struct RecognitionRecord: Codable {
@@ -118,6 +155,9 @@ public struct Page: Codable, Identifiable {
     public var blocks: [Block], hints: [TextHint], issues: [ReviewIssue]
     public var recognitions: [RecognitionRecord]
     public var error: String?
+    public var ocrStructure: OCRPageStructure?
+    public var textContinuation: TextContinuation?
+    public var agentFailurePath: String?
     public var size: CGSize { CGSize(width:width,height:height) }
     public init(id: String = UUID().uuidString, sourceID: String = "fixture", sourcePage: Int, width: Double, height: Double, imagePath: String = "", imageSHA256: String = "") {
         self.id=id;self.sourceID=sourceID;self.sourcePage=sourcePage;self.width=width;self.height=height;self.imagePath=imagePath;self.imageSHA256=imageSHA256
@@ -126,6 +166,7 @@ public struct Page: Codable, Identifiable {
         self.blocks=[];self.hints=[];self.issues=[];self.recognitions=[]
     }
     public var orderedBlocks: [Block] { blocks.sorted { $0.order == $1.order ? $0.id < $1.id : $0.order < $1.order } }
+    public var orderedBodyBlocks: [Block] { orderedBlocks.filter{$0.kind.isBody} }
 }
 public struct SourceFile: Codable, Identifiable {
     public var id: String, filename: String, relativePath: String, sha256: String

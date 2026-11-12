@@ -1,18 +1,33 @@
 import Foundation
 import AppKit
 
+/// A service-wide request failure, distinct from a malformed result on one page.
+public struct ProviderRequestError: Error, LocalizedError, Sendable {
+    public let statusCode: Int?
+    public let message: String
+    public var errorDescription: String? { message }
+    public init(statusCode: Int? = nil, message: String) {
+        self.statusCode = statusCode
+        self.message = message
+    }
+}
+
 public protocol HTTPTransport {
     func send(_ request: URLRequest) async throws -> (Data,HTTPURLResponse)
 }
-public final class NetworkTransport: NSObject, HTTPTransport, URLSessionTaskDelegate {
-    private lazy var session:URLSession = {
+public final class NetworkTransport: HTTPTransport {
+    private static let session:URLSession = {
         let c=URLSessionConfiguration.ephemeral;c.urlCache=nil;c.requestCachePolicy = .reloadIgnoringLocalCacheData
-        return URLSession(configuration:c,delegate:self,delegateQueue:nil)
+        c.httpShouldSetCookies=false
+        return URLSession(configuration:c,delegate:NoRedirectDelegate(),delegateQueue:nil)
     }()
+    public init() {}
     public func send(_ request:URLRequest) async throws -> (Data,HTTPURLResponse) {
-        let (data,response)=try await session.data(for:request)
+        let (data,response)=try await Self.session.data(for:request)
         guard let http=response as? HTTPURLResponse else { throw ArchiveError.message("服务未返回 HTTP 响应。") };return (data,http)
     }
+}
+private final class NoRedirectDelegate:NSObject,URLSessionTaskDelegate {
     public func urlSession(_ session:URLSession,task:URLSessionTask,willPerformHTTPRedirection response:HTTPURLResponse,newRequest request:URLRequest,completionHandler:@escaping (URLRequest?)->Void) {
         // API images and credentials must never follow a provider redirect implicitly.
         completionHandler(nil)
@@ -22,6 +37,28 @@ public struct OCRResult {
     public var blocks:[Block], issues:[ReviewIssue]
     public var printedLabel:String?, blankCandidate:Bool
     public var response:Data, returnedModel:String?, promptTokens:Int?, completionTokens:Int?
+    public var structure:OCRPageStructure? = nil
+    mutating func remap(from region:Box) {
+        func box(_ value:Box)->Box {
+            Box(region.x+value.x*region.width,region.y+value.y*region.height,value.width*region.width,value.height*region.height)
+        }
+        for i in blocks.indices {
+            blocks[i].box=box(blocks[i].box)
+            for j in blocks[i].cells.indices {
+                if let bounds=blocks[i].cells[j].box {blocks[i].cells[j].box=box(bounds)}
+            }
+        }
+    }
+}
+enum OCRContentError: LocalizedError {
+    case truncated, refused, incomplete
+    var errorDescription: String? {
+        switch self {
+        case .truncated:return "模型输出被截断，请增加输出上限或使用更小的识别区域。"
+        case .refused:return "模型拒绝了本页识别请求。"
+        case .incomplete:return "视觉服务未完成本页转写。"
+        }
+    }
 }
 public protocol OCRBackend {
     func recognize(image:CGImage,page:Page,region:Box?,status:@escaping (String)->Void) async throws -> OCRResult
@@ -37,7 +74,7 @@ public final class CompatibleVisionBackend: OCRBackend {
     public init(config:ProviderConfiguration,key:String,transport:HTTPTransport = NetworkTransport(),sleep:@escaping (Double) async throws -> Void = { seconds in try await Task.sleep(nanoseconds:UInt64(max(0,seconds)*1_000_000_000)) }) {
         self.config=config;self.key=key;self.transport=transport;self.sleep=sleep
     }
-    private func request(route:String,body:[String:Any]? = nil) throws -> URLRequest {
+    func request(route:String,body:[String:Any]? = nil) throws -> URLRequest {
         var req=URLRequest(url:try config.endpoint(route));req.timeoutInterval=min(600,max(10,config.timeout))
         req.setValue("application/json",forHTTPHeaderField:"Accept")
         if !key.isEmpty { req.setValue("Bearer "+key,forHTTPHeaderField:"Authorization") }
@@ -52,17 +89,25 @@ public final class CompatibleVisionBackend: OCRBackend {
         }
         return pow(2,Double(attempt+1))
     }
-    private func perform(_ request:URLRequest,status:@escaping(String)->Void) async throws -> Data {
-        for attempt in 0...3 {
+    func perform(_ request:URLRequest,status:@escaping(String)->Void,retries:Int = 3,maxDelay:Double = 600,
+                 maxResponseBytes:Int = 32*1024*1024,received:((HTTPURLResponse)->Void)? = nil) async throws -> Data {
+        for attempt in 0...retries {
             try Task.checkCancellation()
             do {
                 let (data,response)=try await transport.send(request)
-                guard data.count<32*1024*1024 else { throw ArchiveError.message("API 返回过大，已停止处理。") }
+                received?(response)
+                guard data.count<maxResponseBytes else { throw ArchiveError.message("API 返回过大，已停止处理。") }
                 if (200..<300).contains(response.statusCode) { return data }
-                if [429,500,502,503,504].contains(response.statusCode),attempt<3 {
+                if response.statusCode==429,
+                   let json=(try? JSONSerialization.jsonObject(with:data)) as? [String:Any],
+                   let info=json["error"] as? [String:Any],
+                   let code=info["code"] as? String,["insufficient_quota","billing_hard_limit_reached"].contains(code) {
+                    throw ProviderRequestError(statusCode:429,message:"API 额度或计费权限不足。")
+                }
+                if [408,429,500,502,503,504].contains(response.statusCode),attempt<retries {
                     let delay=Self.retryDelay(response,attempt:attempt)
-                    guard delay<=600 else { throw ArchiveError.message("服务要求等待超过 10 分钟，请稍后重试；本页已保留。") }
-                    status("HTTP \(response.statusCode) · 等待 \(Int(ceil(delay))) 秒后重试（\(attempt+1)/3）")
+                    guard delay<=maxDelay else { throw ProviderRequestError(statusCode:response.statusCode,message:"服务要求等待超过 \(Int(maxDelay)) 秒，请稍后重试。") }
+                    status("HTTP \(response.statusCode) · 等待 \(Int(ceil(delay))) 秒后重试（\(attempt+1)/\(retries)）")
                     try await sleep(delay);continue
                 }
                 let reason:String
@@ -74,11 +119,11 @@ public final class CompatibleVisionBackend: OCRBackend {
                 case 429:reason="仍在限流，请稍后重试"
                 default:reason="上游服务异常"
                 }
-                throw ArchiveError.message("HTTP \(response.statusCode)：\(reason)。")
+                throw ProviderRequestError(statusCode:response.statusCode,message:"HTTP \(response.statusCode)：\(reason)。")
             } catch let e as URLError {
                 if e.code == .cancelled { throw CancellationError() }
-                guard [.timedOut,.networkConnectionLost,.cannotConnectToHost,.notConnectedToInternet,.cannotFindHost].contains(e.code),attempt<3 else { throw ArchiveError.message("网络连接失败（\(e.code.rawValue)），请检查网络和 API 地址。") }
-                let delay=pow(2,Double(attempt+1));status("网络中断 · \(Int(delay)) 秒后重试（\(attempt+1)/3）");try await sleep(delay)
+                guard [.timedOut,.networkConnectionLost,.cannotConnectToHost,.notConnectedToInternet,.cannotFindHost].contains(e.code),attempt<retries else { throw ProviderRequestError(message:"网络连接失败（\(e.code.rawValue)），请检查网络和 API 地址。") }
+                let delay=pow(2,Double(attempt+1));status("网络中断 · \(Int(delay)) 秒后重试（\(attempt+1)/\(retries)）");try await sleep(delay)
             }
         }
         throw ArchiveError.message("请求重试结束。")
@@ -94,8 +139,8 @@ public final class CompatibleVisionBackend: OCRBackend {
         return Digest.sha256(Data(s.utf8))
     }
     private func body(image:CGImage,prompt:String,json:Bool) throws -> [String:Any] {
-        guard !config.model.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else { throw ArchiveError.message("请先填写视觉模型 ID。") }
-        guard ["max_tokens","max_completion_tokens"].contains(config.tokenParameter), (256...65536).contains(config.maxOutputTokens) else { throw ArchiveError.message("输出参数无效。") }
+        guard !config.model.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else { throw ProviderRequestError(message:"请先填写视觉模型 ID。") }
+        guard ["max_tokens","max_completion_tokens"].contains(config.tokenParameter), (256...65536).contains(config.maxOutputTokens) else { throw ProviderRequestError(message:"输出参数无效。") }
         let data=try PageImporter.jpegData(image)
         let parts:[[String:Any]]=[["type":"text","text":prompt],["type":"image_url","image_url":["url":"data:image/jpeg;base64,"+data.base64EncodedString(),"detail":"high"]]]
         let messages:[[String:Any]]=[["role":"user","content":parts]]
@@ -107,16 +152,10 @@ public final class CompatibleVisionBackend: OCRBackend {
         let imageToSend=try region.map { try PageImporter.crop(image,box:$0) } ?? image
         let data=try await perform(request(route:"chat/completions",body:body(image:imageToSend,prompt:Self.prompt,json:true)),status:status)
         var result=try OCRParser.parse(data,pageID:page.id)
-        if let region=region {
-            func remap(_ box:Box)->Box { Box(region.x+box.x*region.width,region.y+box.y*region.height,box.width*region.width,box.height*region.height) }
-            for i in result.blocks.indices {
-                result.blocks[i].box=remap(result.blocks[i].box)
-                for j in result.blocks[i].cells.indices { if let b=result.blocks[i].cells[j].box { result.blocks[i].cells[j].box=remap(b) } }
-            }
-        }
+        if let region=region {result.remap(from:region)}
         return result
     }
-    public func probe() async throws -> String {
+    static func probeImage() throws -> (CGImage,String) {
         let code=String(Int.random(in:100000...999999))
         guard let context=PageImporter.bitmap(width:800,height:180) else { throw ArchiveError.message("无法生成测试图。") }
         context.setFillColor(CGColor(gray:1,alpha:1));context.fill(CGRect(x:0,y:0,width:800,height:180))
@@ -124,6 +163,10 @@ public final class CompatibleVisionBackend: OCRBackend {
         let previous=NSGraphicsContext.current;NSGraphicsContext.current=NSGraphicsContext(cgContext:context,flipped:false)
         text.draw(at:CGPoint(x:35,y:50));NSGraphicsContext.current=previous
         guard let image=context.makeImage() else { throw ArchiveError.message("测试图生成失败。") }
+        return (image,code)
+    }
+    public func probe() async throws -> String {
+        let (image,code)=try Self.probeImage()
         let data=try await perform(request(route:"chat/completions",body:body(image:image,prompt:"Read the six-digit number in the image. Reply with only those six digits.",json:false)),status:{_ in})
         let (content,_,_,_)=try OCRParser.envelope(data)
         guard content.trimmingCharacters(in:.whitespacesAndNewlines)==code else { throw ArchiveError.message("接口响应成功，但未正确读出随机测试图片；请检查模型图片能力。") }
@@ -143,8 +186,9 @@ public final class CompatibleVisionBackend: OCRBackend {
 public enum OCRParser {
     public static func envelope(_ data:Data) throws -> (String,String?,Int?,Int?) {
         guard let json=try JSONSerialization.jsonObject(with:data) as? [String:Any], let choices=json["choices"] as? [[String:Any]],let first=choices.first,let message=first["message"] as? [String:Any] else { throw ArchiveError.message("API 返回不符合 Chat Completions 格式。") }
-        guard first["finish_reason"] as? String != "length" else { throw ArchiveError.message("模型输出被截断；请增加输出上限，或改为完整区域识别。本页未记为成功。") }
-        if let refusal=message["refusal"] as? String,!refusal.isEmpty { throw ArchiveError.message("模型拒绝了识别请求，本页未记为成功。") }
+        guard first["finish_reason"] as? String != "length" else { throw OCRContentError.truncated }
+        if let refusal=message["refusal"] as? String,!refusal.isEmpty { throw OCRContentError.refused }
+        if first["finish_reason"] as? String == "content_filter" { throw OCRContentError.refused }
         let content:String
         if let s=message["content"] as? String { content=s }
         else if let parts=message["content"] as? [[String:Any]] { content=parts.compactMap { $0["text"] as? String }.joined() }
@@ -155,6 +199,10 @@ public enum OCRParser {
     }
     public static func parse(_ data:Data,pageID:String) throws -> OCRResult {
         let (content,model,prompt,completion)=try envelope(data)
+        return try parsePage(content,response:data,model:model,prompt:prompt,completion:completion,pageID:pageID)
+    }
+    static func parsePage(_ content:String,response:Data,model:String?,prompt:Int?,completion:Int?,pageID:String,
+                          agent:Bool = false) throws -> OCRResult {
         var clean=content.trimmingCharacters(in:.whitespacesAndNewlines)
         if clean.hasPrefix("```") {
             var lines=clean.components(separatedBy:"\n");guard lines.count>=3,lines.last?.trimmingCharacters(in:.whitespaces)=="```" else { throw ArchiveError.message("JSON 代码块不完整。") }
@@ -162,6 +210,14 @@ public enum OCRParser {
         }
         guard let bytes=clean.data(using:.utf8),let json=try JSONSerialization.jsonObject(with:bytes) as? [String:Any],let items=json["blocks"] as? [[String:Any]],items.count<=2000 else { throw ArchiveError.message("识别结果不是有效的页面结构 JSON。") }
         let blank=json["blank"] as? Bool ?? false
+        let structure:OCRPageStructure?
+        if agent {
+            guard json["blank"] is Bool,let raw=json["layout"] as? String,let layout=OCRPageLayout(rawValue:raw),
+                  let start=json["starts_mid_paragraph"] as? Bool,let end=json["ends_mid_paragraph"] as? Bool else {
+                throw ArchiveError.message("OCR Agent 缺少页面布局或续段字段。")
+            }
+            structure=OCRPageStructure(layout:layout,startsMidParagraph:start,endsMidParagraph:end)
+        } else {structure=nil}
         guard !blank || items.isEmpty else {throw ArchiveError.message("模型同时报告空白与内容区域，判定不一致。")}
         guard !items.isEmpty || blank else { throw ArchiveError.message("模型未返回任何区域，也未说明为空白页。") }
         var blocks:[Block]=[],issues:[ReviewIssue]=[]
@@ -172,7 +228,17 @@ public enum OCRParser {
             let id="\(pageID)-b\(String(format:"%04d",index+1))"
             let text=item["text"] as? String ?? ""
             guard kind == .figure || kind == .table || !text.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else { throw ArchiveError.message("文字区域为空，请重新识别或手工补全。") }
-            var b=Block(id:id,kind:kind,order:item["order"] as? Int ?? index+1,box:box,text:text,runs:try decodeRuns(item["runs"],text:text))
+            var b=Block(id:id,kind:kind,order:agent ? index+1 : (item["order"] as? Int ?? index+1),box:box,text:text,runs:try decodeRuns(item["runs"],text:text))
+            if agent {
+                guard let raw=item["column"] as? String,let column=OCRColumn(rawValue:raw),
+                      let refs=item["note_refs"] as? [String],item["text"] is String else {
+                    throw ArchiveError.message("OCR Agent 的区块缺少栏、正文或脚注字段。")
+                }
+                if kind != .table,let cells=item["cells"] as? [Any],!cells.isEmpty {
+                    throw ArchiveError.message("非表格区域包含单元格，需重读结构。")
+                }
+                b.ocrColumn=column;b.noteReferences=refs;b.noteID=item["note_id"] as? String
+            }
             b.alignment=["left","center","right","justified"].contains(item["alignment"] as? String ?? "") ? item["alignment"] as! String : "left"
             let size=(item["font_size"] as? Double) ?? 0
             b.fontSize=size.isFinite && (0...100).contains(size) ? size : 0
@@ -188,7 +254,7 @@ public enum OCRParser {
                     guard (1...100).contains(rs),(1...100).contains(cs),row+rs<=500,col+cs<=100 else { throw ArchiveError.message("表格合并关系无效。") }
                     for r in row..<row+rs { for c in col..<col+cs { guard occupied.insert("\(r):\(c)").inserted else { throw ArchiveError.message("表格单元格关系重叠。") } } }
                     guard let cellText=cell["text"] as? String else { throw ArchiveError.message("单元格缺少原文。") }
-                    let cb:Box? = cell["bbox"] == nil ? nil : try decodeBox(cell["bbox"])
+                    let cb:Box? = cell["bbox"] == nil || cell["bbox"] is NSNull ? nil : try decodeBox(cell["bbox"])
                     if let cb=cb, !box.contains(cb) { throw ArchiveError.message("表格单元格超出表格区域。") }
                     b.cells.append(TableCell(id:"\(id)-c\(ci+1)",row:row,column:col,text:cellText,box:cb,rowSpan:rs,columnSpan:cs,runs:try decodeRuns(cell["runs"],text:cellText)))
                 }
@@ -198,7 +264,7 @@ public enum OCRParser {
             blocks.append(b)
         }
         guard Set(blocks.map(\.order)).count==blocks.count else { throw ArchiveError.message("阅读顺序存在重复，请重新识别或修改结构。") }
-        return OCRResult(blocks:blocks,issues:issues,printedLabel:json["printed_page_label"] as? String,blankCandidate:blank,response:data,returnedModel:model,promptTokens:prompt,completionTokens:completion)
+        return OCRResult(blocks:blocks,issues:issues,printedLabel:json["printed_page_label"] as? String,blankCandidate:blank,response:response,returnedModel:model,promptTokens:prompt,completionTokens:completion,structure:structure)
     }
     private static func decodeBox(_ value:Any?) throws -> Box {
         guard let a=value as? [Double],a.count==4 else { throw ArchiveError.message("区域缺少四个归一化坐标。") }

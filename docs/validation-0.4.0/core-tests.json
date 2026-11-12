@@ -1,0 +1,372 @@
+[
+  {
+    "detail" : "",
+    "name" : "页范围去重与排序",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "空范围选择全部",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "中文逗号页范围",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "拒绝倒序与越界范围",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "拒绝非有限或越界坐标",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "坐标由顶端归一化转换为PDF原点",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "API基地址保留版本与去除重复路由",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "拒绝明文远端与带凭据URL",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "允许本机HTTP接口",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "逐页保留请求与返回模型差别",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "返回模型未知时保持空值",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "截断输出不能成功",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "拒绝坏坐标与未知区域类型",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "拒绝空成功与空文字块",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "空白判定保留人工确认问题",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "疑难附标保留标记",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "样式片段必须与原文完全相同",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "表格合并关系不能重叠",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "表格单元格不能超出表格",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "拒绝重复阅读顺序",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "缓存随图像和模型变化",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "项目保存恢复与原始转写不被覆盖",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "拒绝项目目录越界和符号链接",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "排版样张Unicode文字完整复制",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "正文溢出不能靠无限缩小掩盖",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "缺字方框必须被检测",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "非BMP与组合字符保留Unicode序列",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "区域重叠被检测",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "未识别页面明确为校对稿",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "确认空白页保留页数",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "空文字区域不能完成",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "正文不能以图片冒充文字化",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "PDF导入文字层只是待核对候选",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "旋转页保持正向尺寸",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "多页TIFF逐帧导入",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "JPEG的EXIF旋转在导入时归一化",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "HTTP429遵守RetryAfter并复用请求",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "HTTP401直接失败且不回显密钥",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "HTTP402余额不足不重试",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "502重试有明确上限",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "超时与断网有限重试",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "取消不会继续重试",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "RetryAfter日期与超长等待",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "图像请求格式与密钥隔离",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "局部识别坐标返回到原页",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "系统临时目录别名下可创建预览文件",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "项目JSON不包含API密钥",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "扫描导出保留失败页和确认空白页且优先校对文字",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "本机初稿拒绝覆盖已有转写",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "扫描导出取消后不继续处理后续页面",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "旧项目缺少图像版本标记仍可恢复",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "批处理确实并行且默认最多同时处理两页",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "批处理按页提交乱序结果并在保存完成前停止补页",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "批处理取消后不启动后续页且取消不算页面失败",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "单页识别失败不阻止其他页并保留正确页号",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "服务错误停止队列且不启动后续付费请求",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "保存失败立即停止且未保存的识别结果不计为成功",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "并发设置限制在一至四页并去重重复页号",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "服务错误保留HTTP状态供队列分类并保持既有提示",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "重建PDF开始前取消不改动已有文件",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "重建PDF逐页取消且不留下部分文件",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "重建PDF最后一页取消仍不交付文件",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "正文TXT逐页取消保留已有文件",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "正文TXT完成整理后取消仍不覆盖已有文件",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "重建PDF按所选页顺序导出并报告逐页进度",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "正文TXT按所选页顺序导出并报告逐页进度",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "OCR Agent 安装包模板和版本化缓存",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "OCR Agent 查漏、裁切重读、用量和复原",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "OCR Agent 重读服务失败保留首稿",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "OCR Agent 首轮鉴权失败记录诊断并停止",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "OCR Agent 截断后加预算重读",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "OCR Agent 保留兼容接口和局部坐标映射",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "Markdown 仅续接确认过且相邻的段落",
+    "passed" : true
+  },
+  {
+    "detail" : "",
+    "name" : "旧项目可解码新增的可选 OCR 字段",
+    "passed" : true
+  }
+]

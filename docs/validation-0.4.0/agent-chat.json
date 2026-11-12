@@ -1,0 +1,49 @@
+{
+  "checks": {
+    "agent_audit_provenance": true,
+    "agent_bundled_skill": true,
+    "agent_cache_keeps_manual_edits": true,
+    "agent_displays_service_and_skill": true,
+    "agent_editable_export": true,
+    "agent_issue_location": true,
+    "agent_saved_pending_review": true,
+    "agent_selected_targeted_reread": true,
+    "agent_structured_result": true,
+    "agent_true_vision_witness": true,
+    "no_unexpected_alert": true,
+    "window_visible": true
+  },
+  "method": "native-view-render-and-model-integration; no mouse automation",
+  "passed": true,
+  "peak_resident_bytes": 351879168,
+  "scope": "Real local Vision and application HTTP, with controlled replies on loopback. No cloud OCR accuracy claim.",
+  "status": "OCR Agent完成 · 成功 1 页，失败 0 页 · 0 秒；识别文字仍需核对。",
+  "requests": [
+    {
+      "correct_route": true,
+      "images": 1,
+      "skill_loaded": true,
+      "jpeg_data": true,
+      "schema_configured": true,
+      "no_credential": true
+    },
+    {
+      "correct_route": true,
+      "images": 3,
+      "skill_loaded": true,
+      "jpeg_data": true,
+      "schema_configured": true,
+      "no_credential": true
+    }
+  ],
+  "route": "chat",
+  "http_verified": true,
+  "gold_comparison": {
+    "block_order": true,
+    "exact_raw_text": true,
+    "footnote_links": true,
+    "grid_and_cells": true,
+    "page_label": true,
+    "continuation": true
+  }
+}

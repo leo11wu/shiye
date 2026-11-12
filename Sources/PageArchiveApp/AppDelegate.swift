@@ -14,24 +14,35 @@ final class AppDelegate:NSObject,NSApplicationDelegate {
         if ProcessInfo.processInfo.environment["SHIYE_STARTUP_CHECK"] == "1",window.isVisible {
             fputs("SHIYE_MAIN_WINDOW_READY\n",stderr)
         }
+        model.restoreStartupProject()
         if let i=CommandLine.arguments.firstIndex(of:"--ui-check"),CommandLine.arguments.count>i+1 {
             let probe=UIProbe(model:model,window:window,root:URL(fileURLWithPath:CommandLine.arguments[i+1]));probe.start()
         }
     }
-    func applicationWillTerminate(_ notification:Notification){model.cancel();model.flush()}
+    func applicationShouldTerminate(_ sender:NSApplication)->NSApplication.TerminateReply {
+        guard model.working else{return model.flush() ? .terminateNow : .terminateCancel}
+        model.cancel()
+        let pending=model.workTask
+        Task { @MainActor in
+            await pending?.value
+            sender.reply(toApplicationShouldTerminate:model.flush())
+        }
+        return .terminateLater
+    }
+    func applicationWillTerminate(_ notification:Notification){if !model.working{model.flush()}}
     func application(_ sender:NSApplication,openFiles filenames:[String]) {
         if CommandLine.arguments.contains("--qa") || CommandLine.arguments.contains("--ui-check") {
             sender.reply(toOpenOrPrint:.success);return
         }
         let urls=filenames.map{URL(fileURLWithPath:$0)}
-        if urls.count==1,urls[0].pathExtension=="shiyebook" {model.loadProject(urls[0])}else{model.beginImport(urls)}
+        if urls.count==1,urls[0].pathExtension=="shiyebook" {model.beginOpenProject(urls[0])}else{model.beginImport(urls)}
         sender.reply(toOpenOrPrint:.success)
     }
     func buildMenu() {
         let main=NSMenu(),appItem=NSMenuItem(),appMenu=NSMenu()
         main.addItem(appItem);appItem.submenu=appMenu
         appMenu.addItem(withTitle:"关于拾页",action:#selector(NSApplication.orderFrontStandardAboutPanel(_:)),keyEquivalent:"")
-        appMenu.addItem(.separator());appMenu.addItem(withTitle:"视觉 API 设置…",action:#selector(settings),keyEquivalent:",").target=self
+        appMenu.addItem(.separator());appMenu.addItem(withTitle:"OCR Agent 设置…",action:#selector(settings),keyEquivalent:",").target=self
         appMenu.addItem(.separator());appMenu.addItem(withTitle:"退出拾页",action:#selector(NSApplication.terminate(_:)),keyEquivalent:"q")
         let fileItem=NSMenuItem(),file=NSMenu(title:"文件");main.addItem(fileItem);fileItem.submenu=file
         file.addItem(withTitle:"导入文件…",action:#selector(importFiles),keyEquivalent:"o").target=self
@@ -50,7 +61,7 @@ final class AppDelegate:NSObject,NSApplicationDelegate {
     @objc func openProject(){model.openProject()}
     @objc func save(){model.flush()}
     @objc func export(){model.exportSearchablePDF()}
-    @objc func exportRebuilt(){model.exportPDF()}
+    @objc func exportRebuilt(){model.exportEditable()}
     @objc func fixture(){model.loadFixture()}
     func applicationShouldTerminateAfterLastWindowClosed(_ sender:NSApplication)->Bool { true }
 }

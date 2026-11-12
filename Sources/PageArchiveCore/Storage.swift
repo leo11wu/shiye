@@ -70,8 +70,8 @@ public struct ProviderConfiguration: Codable, Equatable {
         guard var c=URLComponents(string:baseURL.trimmingCharacters(in:.whitespacesAndNewlines)), let host=c.host, c.user==nil, c.password==nil, c.query==nil, c.fragment==nil,
               c.scheme=="https" || (c.scheme=="http" && ["localhost","127.0.0.1","::1"].contains(host)) else { throw ArchiveError.message("请输入 HTTPS API 基地址，例如 https://服务商地址/v1；本机服务可以使用 HTTP。") }
         var path=c.path.trimmingCharacters(in:CharacterSet(charactersIn:"/"))
-        for suffix in ["/chat/completions","/models"] where path.hasSuffix(suffix) { path=String(path.dropLast(suffix.count)) }
-        if path=="chat/completions" || path=="models" { path="" }
+        for suffix in ["/chat/completions","/models","/responses"] where path.hasSuffix(suffix) { path=String(path.dropLast(suffix.count)) }
+        if ["chat/completions","models","responses"].contains(path) { path="" }
         c.path="/" + ([path,route].filter { !$0.isEmpty }.joined(separator:"/"))
         guard let url=c.url else { throw ArchiveError.message("API 地址无法解析。") };return url
     }

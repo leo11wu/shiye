@@ -9,6 +9,7 @@ import subprocess
 parser = argparse.ArgumentParser()
 parser.add_argument("app", type=Path)
 parser.add_argument("--root", type=Path, required=True)
+parser.add_argument("--batch", action="store_true", help="Check concurrent processing, cancellation and resume with controlled local fixtures")
 args = parser.parse_args()
 app, root = args.app.resolve(), args.root.resolve()
 info = plistlib.loads((app / "Contents/Info.plist").read_bytes())
@@ -17,14 +18,17 @@ result_file = root / "results/ui-results.json"
 if result_file.exists():
     raise SystemExit("Use a fresh check directory to avoid reading a stale report.")
 with (root / "launch.log").open("wb") as log:
-    process = subprocess.Popen([
+    command = [
         str(app / "Contents/MacOS" / info["CFBundleExecutable"]),
         "--qa", "--data-root", str(root / "projects"),
         "--ui-check", str(root / "results"),
-    ], stdout=log, stderr=log)
+    ]
+    if args.batch:
+        command.append("--batch-check")
+    process = subprocess.Popen(command, stdout=log, stderr=log)
     timed_out = False
     try:
-        process.wait(timeout=40)
+        process.wait(timeout=55 if args.batch else 40)
     except subprocess.TimeoutExpired:
         timed_out = True
         process.terminate()

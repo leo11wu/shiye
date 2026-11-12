@@ -127,16 +127,19 @@ public enum PageImporter {
             return box.isValid ? TextHint(box:box,text:text) : nil
         }
     }
-    public static func detectHints(_ image:CGImage) throws -> [TextHint] {
+    public static func detectHints(_ image:CGImage,languages:[String] = ["en-US","zh-Hant","zh-Hans"]) throws -> [TextHint] {
         let request=VNRecognizeTextRequest();request.recognitionLevel = .accurate;request.usesLanguageCorrection=false
         request.revision=VNRecognizeTextRequestRevision3;request.minimumTextHeight=0.003
         let supported=try request.supportedRecognitionLanguages()
-        request.recognitionLanguages=["en-US","zh-Hant","zh-Hans"].filter { supported.contains($0) }
+        request.recognitionLanguages=languages.filter { supported.contains($0) }
         try VNImageRequestHandler(cgImage:image,options:[:]).perform([request])
         return (request.results ?? []).compactMap { item in
             guard let candidate=item.topCandidates(1).first else { return nil }
             let b=item.boundingBox
-            return TextHint(box:Box(b.minX,1.0-Double(b.maxY),b.width,b.height),text:candidate.string)
+            let left=max(0,b.minX),top=max(0,1-b.maxY),right=min(1,b.maxX),bottom=min(1,1-b.minY)
+            let box=Box(left,top,right-left,bottom-top)
+            guard box.isValid,!candidate.string.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty else{return nil}
+            return TextHint(box:box,text:candidate.string,confidence:Double(candidate.confidence))
         }
     }
     public static func groupHints(_ hints:[TextHint],pageID:String) -> [Block] {
